@@ -31,4 +31,5 @@ Route::group(
 /*
  * Include CRUD Routes
  */
+include('backend/routes-blogs.php');
 //include("backend/routes-example.php");
