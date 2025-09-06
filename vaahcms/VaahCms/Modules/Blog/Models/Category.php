@@ -10,14 +10,14 @@ use WebReinvent\VaahCms\Traits\CrudWithUuidObservantTrait;
 use WebReinvent\VaahCms\Models\User;
 use WebReinvent\VaahCms\Libraries\VaahSeeder;
 
-class Tag extends VaahModel
+class Category extends VaahModel
 {
 
     use SoftDeletes;
     use CrudWithUuidObservantTrait;
 
     //-------------------------------------------------
-    protected $table = 'bl_tags';
+    protected $table = 'bl_categories';
     //-------------------------------------------------
     protected $dates = [
         'created_at',
@@ -42,6 +42,14 @@ class Tag extends VaahModel
     //-------------------------------------------------
     protected $appends = [
     ];
+    //-------------------------------------------------
+    // Model Relationships
+    //-------------------------------------------------
+
+    public function seo()
+    {
+        return $this->morphOne(Seo::class, 'seoable');
+    }
 
     //-------------------------------------------------
     protected function serializeDate(DateTimeInterface $date)
@@ -162,7 +170,7 @@ class Tag extends VaahModel
         if ($item) {
             $error_message = "This name is already exist".($item->deleted_at?' in trash.':'.');
             $response['success'] = false;
-            $response['messages'][] = $error_message;
+            $response['errors'][] = $error_message;
             return $response;
         }
 
@@ -172,13 +180,20 @@ class Tag extends VaahModel
         if ($item) {
             $error_message = "This slug is already exist".($item->deleted_at?' in trash.':'.');
             $response['success'] = false;
-            $response['messages'][] = $error_message;
+            $response['errors'][] = $error_message;
             return $response;
         }
 
         $item = new self();
         $item->fill($inputs);
         $item->save();
+
+        // Create Polymorphic Seo Data
+        $item->seo()->create([
+            'seo_title' => $inputs['seo_title'],
+            'seo_description' => $inputs['seo_description'],
+            'seo_metatag' => $inputs['seo_metatag'],
+        ]);
 
         $response = self::getItem($item->id);
         $response['messages'][] = trans("vaahcms-general.saved_successfully");

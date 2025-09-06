@@ -42,6 +42,14 @@ class Tag extends VaahModel
     //-------------------------------------------------
     protected $appends = [
     ];
+    //-------------------------------------------------
+    // Model Relationships
+    //-------------------------------------------------
+
+    public function blogs()
+    {
+        return $this->belongsToMany(Blog::class, 'bl_blog_tag', 'bl_tag_id', 'bl_blog_id');
+    }
 
     //-------------------------------------------------
     protected function serializeDate(DateTimeInterface $date)
@@ -162,7 +170,7 @@ class Tag extends VaahModel
         if ($item) {
             $error_message = "This name is already exist".($item->deleted_at?' in trash.':'.');
             $response['success'] = false;
-            $response['messages'][] = $error_message;
+            $response['errors'][] = $error_message;
             return $response;
         }
 
@@ -172,7 +180,7 @@ class Tag extends VaahModel
         if ($item) {
             $error_message = "This slug is already exist".($item->deleted_at?' in trash.':'.');
             $response['success'] = false;
-            $response['messages'][] = $error_message;
+            $response['errors'][] = $error_message;
             return $response;
         }
 

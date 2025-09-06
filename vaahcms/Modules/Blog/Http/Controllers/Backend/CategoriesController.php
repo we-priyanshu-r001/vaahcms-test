@@ -2,12 +2,10 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use VaahCms\Modules\Blog\Models\Blog;
 use VaahCms\Modules\Blog\Models\Category;
-use VaahCms\Modules\Blog\Models\Tag;
-use WebReinvent\VaahCms\Models\Taxonomy;
 
-class BlogsController extends Controller
+
+class CategoriesController extends Controller
 {
 
 
@@ -29,12 +27,9 @@ class BlogsController extends Controller
             $data['permission'] = [];
             $data['rows'] = config('vaahcms.per_page');
 
-            $data['fillable']['columns'] = Blog::getFillableColumns();
-            $data['fillable']['except'] = Blog::getUnFillableColumns();
-            $data['empty_item'] = Blog::getEmptyItem();
-            $data['vh_taxonomy_status'] = Taxonomy::getTaxonomyByType('status');
-            $data['bl_category'] = Category::all();
-            $data['bl_tags'] = Tag::all();
+            $data['fillable']['columns'] = Category::getFillableColumns();
+            $data['fillable']['except'] = Category::getUnFillableColumns();
+            $data['empty_item'] = Category::getEmptyItem();
 
             $data['actions'] = [];
 
@@ -59,7 +54,7 @@ class BlogsController extends Controller
     public function getList(Request $request)
     {
         try{
-            return Blog::getList($request);
+            return Category::getList($request);
         }catch (\Exception $e){
             $response = [];
             $response['success'] = false;
@@ -76,7 +71,7 @@ class BlogsController extends Controller
     public function updateList(Request $request)
     {
         try{
-            return Blog::updateList($request);
+            return Category::updateList($request);
         }catch (\Exception $e){
             $response = [];
             $response['success'] = false;
@@ -96,7 +91,7 @@ class BlogsController extends Controller
 
 
         try{
-            return Blog::listAction($request, $type);
+            return Category::listAction($request, $type);
         }catch (\Exception $e){
             $response = [];
             $response['success'] = false;
@@ -114,7 +109,7 @@ class BlogsController extends Controller
     public function deleteList(Request $request)
     {
         try{
-            return Blog::deleteList($request);
+            return Category::deleteList($request);
         }catch (\Exception $e){
             $response = [];
             $response['success'] = false;
@@ -131,7 +126,7 @@ class BlogsController extends Controller
     public function fillItem(Request $request)
     {
         try{
-            return Blog::fillItem($request);
+            return Category::fillItem($request);
         }catch (\Exception $e){
             $response = [];
             $response['success'] = false;
@@ -148,7 +143,7 @@ class BlogsController extends Controller
     public function createItem(Request $request)
     {
         try{
-            return Blog::createItem($request);
+            return Category::createItem($request);
         }catch (\Exception $e){
             $response = [];
             $response['success'] = false;
@@ -165,7 +160,7 @@ class BlogsController extends Controller
     public function getItem(Request $request, $id)
     {
         try{
-            return Blog::getItem($id);
+            return Category::getItem($id);
         }catch (\Exception $e){
             $response = [];
             $response['success'] = false;
@@ -182,7 +177,7 @@ class BlogsController extends Controller
     public function updateItem(Request $request,$id)
     {
         try{
-            return Blog::updateItem($request,$id);
+            return Category::updateItem($request,$id);
         }catch (\Exception $e){
             $response = [];
             $response['success'] = false;
@@ -199,7 +194,7 @@ class BlogsController extends Controller
     public function deleteItem(Request $request,$id)
     {
         try{
-            return Blog::deleteItem($request,$id);
+            return Category::deleteItem($request,$id);
         }catch (\Exception $e){
             $response = [];
             $response['success'] = false;
@@ -216,7 +211,7 @@ class BlogsController extends Controller
     public function itemAction(Request $request,$id,$action)
     {
         try{
-            return Blog::itemAction($request,$id,$action);
+            return Category::itemAction($request,$id,$action);
         }catch (\Exception $e){
             $response = [];
             $response['success'] = false;

@@ -56,6 +56,19 @@ class Blog extends VaahModel
         return $this->belongsTo(Taxonomy::class, 'vh_taxonomy_status_id');
     }
 
+    public function category(){
+        return $this->belongsTo(Category::class, 'bl_category_id');
+    }
+
+    public function tags(){
+        return $this->belongsToMany(Tag::class, 'bl_blog_tag', 'bl_blog_id', 'bl_tag_id');
+    }
+
+    public function seo()
+    {
+        return $this->morphOne(Seo::class, 'seoable');
+    }
+
     //-------------------------------------------------
     protected function serializeDate(DateTimeInterface $date)
     {
@@ -160,13 +173,14 @@ class Blog extends VaahModel
     //-------------------------------------------------
     public static function createItem($request)
     {
-
         $inputs = $request->all();
 
         $validation = self::validation($inputs);
         if (!$validation['success']) {
             return $validation;
         }
+
+        // dd($inputs['bl_tag_id']);
 
 
         // check if name exist
@@ -187,11 +201,20 @@ class Blog extends VaahModel
             $response['success'] = false;
             $response['errors'][] = $error_message;
             return $response;
-        }
+        }        
 
         $item = new self();
         $item->fill($inputs);
         $item->save();
+        
+        // Create Polymorphic Seo Data
+        $item->seo()->create([
+            'seo_title' => $inputs['seo_title'],
+            'seo_description' => $inputs['seo_description'],
+            'seo_metatag' => $inputs['seo_metatag'],
+        ]);
+
+        $item->tags()->attach($inputs['bl_tag_id']); // Attach Tags
 
         $response = self::getItem($item->id);
         $response['messages'][] = trans("vaahcms-general.saved_successfully");
@@ -285,7 +308,7 @@ class Blog extends VaahModel
     //-------------------------------------------------
     public static function getList($request)
     {
-        $list = self::getSorted($request->filter)->with(['status']);
+        $list = self::getSorted($request->filter)->with(['status', 'category', 'tags']);
         $list->isActiveFilter($request->filter);
         $list->trashedFilter($request->filter);
         $list->searchFilter($request->filter);

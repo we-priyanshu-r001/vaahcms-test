@@ -1,8 +1,8 @@
 <script setup>
 import { vaah } from '../../../vaahvue/pinia/vaah'
-import { useBlogStore } from '../../../stores/store-blogs'
+import { useCategoryStore } from '../../../stores/store-categories'
 
-const store = useBlogStore();
+const store = useCategoryStore();
 const useVaah = vaah();
 
 </script>
@@ -41,41 +41,17 @@ const useVaah = vaah();
 
             </Column>
 
-            <Column field="bl_category_id" header="Category"
-                    v-if="store.isViewLarge()"
-                    :sortable="true">
 
-                <template #body="prop">
-                    {{prop.data.category?.name ?? 'No Category'}}
-                </template>
+                <Column field="updated_at" header="Updated"
+                        v-if="store.isViewLarge()"
+                        style="width:150px;"
+                        :sortable="true">
 
-            </Column>
+                    <template #body="prop">
+                        {{useVaah.toLocalTimeShortFormat(prop.data.updated_at)}}
+                    </template>
 
-            <Column field="vh_taxonomy_status_id" header="Status"
-                    v-if="store.isViewLarge()"
-                    :sortable="true">
-
-                <template #body="prop">
-                    <Tag v-if="prop.data.status?.name"
-                        :value="prop.data.status.name"
-                        :severity="prop.data.status.name.toLowerCase() === 'published' ? 'success' 
-                                    : prop.data.status.name.toLowerCase() === 'draft' ? 'warning' 
-                                    : 'info'">
-                    </Tag>
-                </template>
-
-            </Column>
-
-            <Column field="updated_at" header="Updated"
-                    v-if="store.isViewLarge()"
-                    style="width:150px;"
-                    :sortable="true">
-
-                <template #body="prop">
-                    {{prop.data.updated_at}}
-                </template>
-
-            </Column>
+                </Column>
 
             <Column field="is_active" v-if="store.isViewLarge()"
                     :sortable="true"
@@ -84,7 +60,7 @@ const useVaah = vaah();
 
                 <template #body="prop">
                     <InputSwitch v-model.bool="prop.data.is_active"
-                                 data-testid="blogs-table-is-active"
+                                 data-testid="categories-table-is-active"
                                  v-bind:false-value="0"  v-bind:true-value="1"
                                  class="p-inputswitch-sm"
                                  @input="store.toggleIsActive(prop.data)">
@@ -101,19 +77,19 @@ const useVaah = vaah();
                     <div class="p-inputgroup ">
 
                         <Button class="p-button-tiny p-button-text"
-                                data-testid="blogs-table-to-view"
+                                data-testid="categories-table-to-view"
                                 v-tooltip.top="'View'"
                                 @click="store.toView(prop.data)"
                                 icon="pi pi-eye" />
 
                         <Button class="p-button-tiny p-button-text"
-                                data-testid="blogs-table-to-edit"
+                                data-testid="categories-table-to-edit"
                                 v-tooltip.top="'Update'"
                                 @click="store.toEdit(prop.data)"
                                 icon="pi pi-pencil" />
 
                         <Button class="p-button-tiny p-button-danger p-button-text"
-                                data-testid="blogs-table-action-trash"
+                                data-testid="categories-table-action-trash"
                                 v-if="store.isViewLarge() && !prop.data.deleted_at"
                                 @click="store.itemAction('trash', prop.data)"
                                 v-tooltip.top="'Trash'"
@@ -121,7 +97,7 @@ const useVaah = vaah();
 
 
                         <Button class="p-button-tiny p-button-success p-button-text"
-                                data-testid="blogs-table-action-restore"
+                                data-testid="categories-table-action-restore"
                                 v-if="store.isViewLarge() && prop.data.deleted_at"
                                 @click="store.itemAction('restore', prop.data)"
                                 v-tooltip.top="'Restore'"

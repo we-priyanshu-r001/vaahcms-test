@@ -33,6 +33,16 @@ const items = ref([
                 icon: 'fa-regular fa-chart-bar',
                 route: "/blogs"
             },
+            {
+                label: 'Categories',
+                icon: 'fa-regular fa-chart-bar',
+                route: "/categories"
+            },
+            {
+                label: 'Tags',
+                icon: 'fa-regular fa-chart-bar',
+                route: "/tags"
+            },
         ]
     },
 ]);
