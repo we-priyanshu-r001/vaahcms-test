@@ -204,6 +204,7 @@ const toggleFormMenu = (event) => {
                             placeholder="Select a Tag" 
                             class="w-full md:w-14rem" 
                         /> -->
+                        {{store.bl_tag_id}}
                         <MultiSelect 
                             v-model="store.item.bl_tag_id" 
                             display="chip" 

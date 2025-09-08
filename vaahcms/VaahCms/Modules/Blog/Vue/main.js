@@ -34,7 +34,7 @@ import Message from "primevue/message";
 import Tag from "primevue/tag";
 import Dropdown from 'primevue/dropdown';
 import MultiSelect from 'primevue/multiselect';
-
+import Chip from 'primevue/chip';
 
 
 //-------------/CRUD PrimeVue Imports
@@ -91,6 +91,7 @@ app.component('Message', Message);
 app.component('Tag', Tag);
 app.component('Dropdown', Dropdown);
 app.component('MultiSelect', MultiSelect);
+app.component('Chip', Chip)
 
 //-------------/CRUD PrimeVue Use
 

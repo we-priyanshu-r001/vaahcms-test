@@ -25,6 +25,23 @@ const toggleBulkMenuState = (event) => {
     bulk_menu_state.value.toggle(event);
 };
 //--------/bulk_menu_state
+
+
+//--------exclusive filters toggle
+const toggleFilter = (type) => {
+    if (type === 'filters') {
+        store.show_filters = !store.show_filters;
+        if (store.show_filters) {
+            store.show_advance_filters = false;
+        }
+    } else if (type === 'advance') {
+        store.show_advance_filters = !store.show_advance_filters;
+        if (store.show_advance_filters) {
+            store.show_filters = false;
+        }
+    }
+};
+//--------/exclusive filters toggle
 </script>
 
 <template>
@@ -46,6 +63,16 @@ const toggleBulkMenuState = (event) => {
                     <i class="pi pi-angle-down"></i>
                     <Badge v-if="store.action.items.length > 0"
                            :value="store.action.items.length" />
+                </Button>
+
+                <Button
+                    type="button"
+                    class="p-button-sm"
+                    :disabled="Object.keys(route.params).length"
+                    data-testid="blogs-actions-show-filters"
+                    @click="toggleFilter('advance')">
+                    Advance Filters
+                    <!-- <Badge v-if="store.count_filters > 0" :value="store.count_filters"></Badge> -->
                 </Button>
                 <Menu ref="selected_menu_state"
                       :model="store.list_selected_menu"
@@ -81,7 +108,7 @@ const toggleBulkMenuState = (event) => {
                                 class="p-button-sm"
                                 :disabled="Object.keys(route.params).length"
                                 data-testid="blogs-actions-show-filters"
-                                @click="store.show_filters = !store.show_filters">
+                                @click="toggleFilter('filters')">
                                 Filters
                                 <Badge v-if="store.count_filters > 0" :value="store.count_filters"></Badge>
                             </Button>

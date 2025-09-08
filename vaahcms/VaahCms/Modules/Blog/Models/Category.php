@@ -9,6 +9,8 @@ use WebReinvent\VaahCms\Models\VaahModel;
 use WebReinvent\VaahCms\Traits\CrudWithUuidObservantTrait;
 use WebReinvent\VaahCms\Models\User;
 use WebReinvent\VaahCms\Libraries\VaahSeeder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+
 
 class Category extends VaahModel
 {
@@ -28,6 +30,7 @@ class Category extends VaahModel
     protected $fillable = [
         'uuid',
         'name',
+        'description',
         'slug',
         'is_active',
         'created_by',
@@ -41,6 +44,9 @@ class Category extends VaahModel
 
     //-------------------------------------------------
     protected $appends = [
+        'seo_title',
+        'seo_description',
+        'seo_metatag',
     ];
     //-------------------------------------------------
     // Model Relationships
@@ -49,6 +55,28 @@ class Category extends VaahModel
     public function seo()
     {
         return $this->morphOne(Seo::class, 'seoable');
+    }
+
+    //-------------------------------------------------
+    // Accessors
+    //-------------------------------------------------
+
+    protected function seoTitle(): Attribute{
+        return Attribute::make(
+            get: fn () => $this->seo?->seo_title
+        );
+    }
+
+    protected function seoDescription(): Attribute{
+        return Attribute::make(
+            get: fn () => $this->seo?->seo_description
+        );
+    }
+
+    protected function seoMetatag(): Attribute{
+        return Attribute::make(
+            get: fn () => $this->seo?->seo_metatag
+        );
     }
 
     //-------------------------------------------------
@@ -520,6 +548,17 @@ class Category extends VaahModel
 
         $item = self::where('id', $id)->withTrashed()->first();
         $item->fill($inputs);
+
+        // 🔹 Update or create SEO (safe for first-time or existing)
+        $item->seo()->updateOrCreate(
+            ['seoable_id' => $item->id, 'seoable_type' => self::class],
+            [
+                'seo_title'       => $inputs['seo_title'] ?? null,
+                'seo_description' => $inputs['seo_description'] ?? null,
+                'seo_metatag'     => $inputs['seo_metatag'] ?? null,
+            ]
+        );
+
         $item->save();
 
         $response = self::getItem($item->id);
@@ -579,7 +618,11 @@ class Category extends VaahModel
 
         $rules = array(
             'name' => 'required|max:150',
+            'description' => 'required|max:150',
             'slug' => 'required|max:150',
+            'seo_title' => 'required',
+            'seo_description' => 'required',
+            'seo_metatag' => 'required'
         );
 
         $validator = \Validator::make($inputs, $rules);
@@ -645,6 +688,17 @@ class Category extends VaahModel
          * You can override the filled variables below this line.
          * You should also return relationship from here
          */
+
+        $inputs['name'] = $faker->sentence(3);
+        $inputs['slug'] = Str::slug($inputs['name']);
+        $inputs['description'] = $faker->paragraph(3);
+        $inputs['is_active'] = 1;
+
+        // SEO Fields
+      
+        $inputs['seo_title'] = $faker->sentence;
+        $inputs['seo_description'] = $faker->text(160);
+        $inputs['seo_metatag'] = $faker->word;
 
         if(!$is_response_return){
             return $inputs;

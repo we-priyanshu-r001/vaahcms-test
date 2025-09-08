@@ -52,6 +52,7 @@ export const useBlogStore = defineStore({
         route_prefix: 'blogs.',
         view: 'large',
         show_filters: false,
+        show_advance_filters: false,
         list_view_width: 12,
         form: {
             type: 'Create',
@@ -110,6 +111,7 @@ export const useBlogStore = defineStore({
                     this.view = 'small';
                     this.list_view_width = 6;
                     this.show_filters = false;
+                    this.show_advance_filters = false;
                     break
             }
         },
@@ -210,6 +212,11 @@ export const useBlogStore = defineStore({
             let options = {
                 query: vaah().clone(this.query)
             };
+
+            // added this to reload assets every time form loads
+            this.assets_is_fetching = true;
+            this.getAssets();
+
             await vaah().ajax(
                 this.ajax_url,
                 this.afterGetList,
@@ -238,7 +245,7 @@ export const useBlogStore = defineStore({
         async getItemAfter(data, res)
         {
             if(data)
-            {
+            {   
                 this.item = data;
             }else{
                 this.$router.push({name: 'blogs.index',query:this.query});

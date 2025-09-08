@@ -5,6 +5,10 @@ import { useBlogStore } from '../../../stores/store-blogs'
 const store = useBlogStore();
 const useVaah = vaah();
 
+function getName(data){
+    return data.map(data => data.name);
+}
+
 </script>
 
 <template>
@@ -62,6 +66,26 @@ const useVaah = vaah();
                                     : prop.data.status.name.toLowerCase() === 'draft' ? 'warning' 
                                     : 'info'">
                     </Tag>
+                </template>
+
+            </Column>
+
+            <Column field="" header="Tags"
+                    v-if="store.isViewLarge()"
+                    :sortable="true">
+
+                <template #body="prop">
+                    <!-- show only first 2 tags -->
+                    <Chip v-for="(tag, index) in prop.data.tags.slice(0, 1)"
+                        :key="index"
+                        :label="tag.name"
+                        class="p-chip-sm" />
+
+                    <!-- if more tags exist -->
+                    <Chip v-if="prop.data.tags.length > 1"
+                        :label="`+${prop.data.tags.length - 1}`"
+                        class="p-chip-sm cursor-pointer bg-green-200"
+                        v-tooltip="getName(prop.data.tags).join(', ')"/>
                 </template>
 
             </Column>

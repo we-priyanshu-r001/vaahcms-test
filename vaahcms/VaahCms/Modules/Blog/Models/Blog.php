@@ -4,12 +4,15 @@ use DateTimeInterface;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Faker\Factory;
 use WebReinvent\VaahCms\Models\VaahModel;
 use WebReinvent\VaahCms\Traits\CrudWithUuidObservantTrait;
 use WebReinvent\VaahCms\Models\User;
 use WebReinvent\VaahCms\Libraries\VaahSeeder;
 use WebReinvent\VaahCms\Models\Taxonomy;
+use WebReinvent\VaahCms\Libraries\VaahMail;
+use VaahCms\Modules\Blog\Mails\BlogCreatedMail;
 
 class Blog extends VaahModel
 {
@@ -46,6 +49,10 @@ class Blog extends VaahModel
 
     //-------------------------------------------------
     protected $appends = [
+        'bl_tag_id',
+        'seo_title',
+        'seo_description',
+        'seo_metatag',
     ];
 
     //-------------------------------------------------
@@ -68,7 +75,33 @@ class Blog extends VaahModel
     {
         return $this->morphOne(Seo::class, 'seoable');
     }
+    //-------------------------------------------------
+    // Accessors
+    //-------------------------------------------------
 
+    protected function blTagId(): Attribute{
+        return Attribute::make(
+            get: fn () => $this->tags->pluck('id')->toArray()
+        );
+    }
+
+    protected function seoTitle(): Attribute{
+        return Attribute::make(
+            get: fn () => $this->seo?->seo_title
+        );
+    }
+
+    protected function seoDescription(): Attribute{
+        return Attribute::make(
+            get: fn () => $this->seo?->seo_description
+        );
+    }
+
+    protected function seoMetatag(): Attribute{
+        return Attribute::make(
+            get: fn () => $this->seo?->seo_metatag
+        );
+    }
     //-------------------------------------------------
     protected function serializeDate(DateTimeInterface $date)
     {
@@ -179,6 +212,9 @@ class Blog extends VaahModel
         if (!$validation['success']) {
             return $validation;
         }
+        $super_admin = User::whereHas('roles', function($role){
+            $role->where('name','Super Administrator');
+        })->first();
 
         // dd($inputs['bl_tag_id']);
 
@@ -215,6 +251,8 @@ class Blog extends VaahModel
         ]);
 
         $item->tags()->attach($inputs['bl_tag_id']); // Attach Tags
+
+        VaahMail::addInQueue(new BlogCreatedMail($item, $super_admin),$super_admin->email); //Send Email to Super Admin
 
         $response = self::getItem($item->id);
         $response['messages'][] = trans("vaahcms-general.saved_successfully");
@@ -306,12 +344,55 @@ class Blog extends VaahModel
 
     }
     //-------------------------------------------------
+    public function scopeStatusFilter($query, $filter)
+    {
+        if(!isset($filter['status']))
+        {
+            return $query;
+        }
+        $status = $filter['status'];
+
+        return $query->whereIn('vh_taxonomy_status_id', $status);
+
+    }
+    //-------------------------------------------------
+    public function scopeCategoryFilter($query, $filter)
+    {
+        if(!isset($filter['categories']))
+        {
+            return $query;
+        }
+        $categories = $filter['categories'];
+
+        return $query->whereHas('category', function ($q1) use ($categories) {
+            $q1->whereIn('id', $categories);
+        });
+
+    }
+    //-------------------------------------------------
+    public function scopeTagFilter($query, $filter)
+    {
+        if(!isset($filter['tags']))
+        {
+            return $query;
+        }
+        $tags = $filter['tags'];
+
+        return $query->whereHas('tags', function ($q1) use ($tags) {
+            $q1->whereIn('bl_tag_id', $tags);
+        });
+
+    }
+    //-------------------------------------------------
     public static function getList($request)
     {
         $list = self::getSorted($request->filter)->with(['status', 'category', 'tags']);
         $list->isActiveFilter($request->filter);
         $list->trashedFilter($request->filter);
         $list->searchFilter($request->filter);
+        $list->statusFilter($request->filter);
+        $list->categoryFilter($request->filter);
+        $list->tagFilter($request->filter);
 
         $rows = config('vaahcms.per_page');
 
@@ -489,7 +570,7 @@ class Blog extends VaahModel
     {
 
         $item = self::where('id', $id)
-            ->with(['createdByUser', 'updatedByUser', 'deletedByUser'])
+            ->with(['createdByUser', 'updatedByUser', 'deletedByUser', 'tags', 'seo'])
             ->withTrashed()
             ->first();
 
@@ -542,6 +623,21 @@ class Blog extends VaahModel
         $item = self::where('id', $id)->withTrashed()->first();
         $item->fill($inputs);
         $item->save();
+
+        // Sync tags
+        if (isset($inputs['bl_tag_id'])) {
+            $item->tags()->sync($inputs['bl_tag_id']);
+        }
+
+        // Update or create SEO (safe for first-time or existing)
+        $item->seo()->updateOrCreate(
+            ['seoable_id' => $item->id, 'seoable_type' => self::class],
+            [
+                'seo_title'       => $inputs['seo_title'] ?? null,
+                'seo_description' => $inputs['seo_description'] ?? null,
+                'seo_metatag'     => $inputs['seo_metatag'] ?? null,
+            ]
+        );
 
         $response = self::getItem($item->id);
         $response['messages'][] = trans("vaahcms-general.saved_successfully");
@@ -601,6 +697,14 @@ class Blog extends VaahModel
         $rules = array(
             'name' => 'required|max:150',
             'slug' => 'required|max:150',
+            'description' => 'required|max:150',
+            'excerpt' => 'required|max:150',
+            'vh_taxonomy_status_id' => 'required',
+            'bl_category_id' => 'required',
+            'bl_tag_id' => 'required',
+            'seo_title' => 'required',
+            'seo_description' => 'required',
+            'seo_metatag' => 'required'
         );
 
         $validator = \Validator::make($inputs, $rules);
@@ -666,6 +770,34 @@ class Blog extends VaahModel
          * You can override the filled variables below this line.
          * You should also return relationship from here
          */
+
+        $inputs['name'] = $faker->sentence(3);
+        $inputs['slug'] = Str::slug($inputs['name']);
+        $inputs['description'] = $faker->paragraph(1);
+        $inputs['excerpt'] = $faker->text(120);
+        $inputs['is_active'] = 1;
+
+        // ✅ Dynamically fetch random valid IDs
+        $inputs['vh_taxonomy_status_id'] = Taxonomy::getTaxonomyByType('status')->random()->id;
+
+        // dd($inputs['status_id']);
+        $inputs['bl_category_id'] = Category::inRandomOrder()->value('id');
+        $totalTags = Tag::count();
+
+        // pick a random n between 1 and totalTags
+        $n = rand(1, $totalTags);
+
+        $inputs['bl_tag_id'] = Tag::inRandomOrder()
+            ->take($n)
+            ->pluck('id')
+            ->toArray();
+        // SEO Fields
+      
+        $inputs['seo_title'] = $faker->sentence;
+        $inputs['seo_description'] = $faker->text(160);
+        $inputs['seo_metatag'] = $faker->word;
+
+        //---------------------------------------------
 
         if(!$is_response_return){
             return $inputs;
