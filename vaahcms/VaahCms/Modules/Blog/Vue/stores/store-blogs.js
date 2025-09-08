@@ -80,6 +80,8 @@ export const useBlogStore = defineStore({
              */
             this.route = route;
 
+            // console.log(route)
+
             /**
              * Update with view and list css column number
              */

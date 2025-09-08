@@ -25,8 +25,8 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
         <link rel="stylesheet" href="https://unpkg.com/buefy/dist/buefy.min.css">
 
-        <!--
-        @if(env('THEME_BLOG_ENV') == 'develop')
+        
+        <!-- @if(env('THEME_BLOG_ENV') == 'develop')
             <link href="http://localhost:8080/blog/assets/css/build.css"
                   rel="stylesheet" media="screen">
             <link href="http://localhost:8080/blog/assets/css/style.css"
@@ -36,8 +36,8 @@
                    rel="stylesheet" media="screen">
             <link  href="{{vh_theme_assets_url("Blog", "css/style.css")}}"
                 rel="stylesheet" media="screen">
-        @endif
-        -->
+        @endif -->
+       
 
         @yield('vaahcms_extend_frontend_head')
 
