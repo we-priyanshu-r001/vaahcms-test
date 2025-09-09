@@ -3,6 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use VaahCms\Modules\Blog\Models\Blog;
+use VaahCms\Modules\Blog\Models\Category;
 
 class ExtendController extends Controller
 {
@@ -56,6 +58,47 @@ class ExtendController extends Controller
         $response['data'] = $links;
 
         return vh_response($response);
+    }
+    //----------------------------------------------------------
+    public function getDashboardItems(){
+        $data = array();
+
+        $data['card'] = [
+            "title" => "Blog Details",
+            "list" => [
+                [
+                    "count" => Blog::count(),
+                    "label" => 'Total Blogs',
+                    "icon" => "pi-book",
+                    "type" => "success",
+                ], 
+                [
+                    "count" => Blog::whereHas('status', function($query) {
+                        $query->where('name', 'Published');
+                    })->count(),
+                    "label" => 'Published Blogs',
+                    "icon" => "pi-check",
+                    "type" => "success",
+                ],
+                [
+                    "count" => Category::count(),
+                    "label" => 'Total Categories',
+                    "icon" => "pi-tag",
+                    "type" => "success",
+                ],
+            ]
+        ];
+
+        $data['expanded_item'] = [
+            [
+                'title' => 'Blog',
+                'content' => 'content',
+            ],
+        ];
+
+        $response['success'] = true;
+        $response['data'] = $data;
+        return $response;
     }
     //----------------------------------------------------------
 
