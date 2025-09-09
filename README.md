@@ -70,10 +70,6 @@ npm run build-blog
 * Place the project inside `C:/xampp/htdocs/` to serve it via Apache.
 * Example path: `C:/xampp/htdocs/vaahcms-test/vaahcms/`
 
-```bash
-php artisan migrate
-```
-
 ### 6. Access the application
 
 * **Backend (Admin Panel):**
