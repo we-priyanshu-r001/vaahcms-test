@@ -33,7 +33,7 @@
 
     <!-- Main Content -->
     <div class="flex-grow">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
             
             <article class="bg-gray-800 rounded-lg shadow-md overflow-hidden p-6 sm:p-8">
                 <header class="mb-6 sm:mb-8">
@@ -51,10 +51,10 @@
                     <h1 class="text-2xl sm:text-3xl font-bold text-indigo-400 mb-4">{{ $blog->name }}</h1>
                     
                     @if($blog->description)
-                        <p class="text-sm text-gray-400 mb-6">{{ $blog->description }}</p>
+                        <p class="text-sm text-white mb-6">{{ $blog->description }}</p>
                     @endif
                     
-                    <div class="text-xs text-gray-500">
+                    <div class="text-xs text-white">
                         Published on {{ \Carbon\Carbon::parse($blog->created_at)->format('F j, Y') }}
                     </div>
                 </header>
@@ -63,7 +63,7 @@
                     {!! $blog->content !!}
                 </div>
 
-                <footer class="mt-8 pt-6 border-t border-gray-700 text-center">
+                <footer class="mt-8 pt-6 border-t border-white text-end">
                     <a href="{{ route('vh.frontend.blog') }}" class="inline-flex items-center text-indigo-400 hover:text-indigo-300 transition duration-150 ease-in-out">
                         <i class="fas fa-arrow-left mr-2"></i>
                         Back to All Articles

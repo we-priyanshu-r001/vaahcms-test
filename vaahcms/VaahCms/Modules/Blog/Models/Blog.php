@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Faker\Factory;
+use Illuminate\Support\Facades\DB;
 use WebReinvent\VaahCms\Models\VaahModel;
 use WebReinvent\VaahCms\Traits\CrudWithUuidObservantTrait;
 use WebReinvent\VaahCms\Models\User;
@@ -496,6 +497,10 @@ class Blog extends VaahModel
         }
 
         $items_id = collect($inputs['items'])->pluck('id')->toArray();
+        $blogs = self::whereIn('id', $items_id)->get();
+        foreach ($blogs as $blog) {
+            $blog->tags()->detach();
+        }
         self::whereIn('id', $items_id)->forceDelete();
 
         $response['success'] = true;
@@ -505,7 +510,7 @@ class Blog extends VaahModel
         return $response;
     }
     //-------------------------------------------------
-     public static function listAction($request, $type): array
+    public static function listAction($request, $type): array
     {
 
         $list = self::query();
@@ -536,6 +541,7 @@ class Blog extends VaahModel
                 break;
             case 'delete-all':
                 $list->forceDelete();
+                DB::table('bl_blog_tag')->truncate(); //Dangerous but efficient to detach in delete all scenario
                 break;
             case 'create-100-records':
             case 'create-1000-records':
@@ -570,7 +576,7 @@ class Blog extends VaahModel
     {
 
         $item = self::where('id', $id)
-            ->with(['createdByUser', 'updatedByUser', 'deletedByUser', 'tags', 'seo'])
+            ->with(['createdByUser', 'updatedByUser', 'deletedByUser', 'tags', 'seo', 'status', 'category'])
             ->withTrashed()
             ->first();
 
@@ -653,6 +659,7 @@ class Blog extends VaahModel
             $response['errors'][] = trans("vaahcms-general.record_does_not_exist");
             return $response;
         }
+        $item->tags()->detach();
         $item->forceDelete();
 
         $response['success'] = true;

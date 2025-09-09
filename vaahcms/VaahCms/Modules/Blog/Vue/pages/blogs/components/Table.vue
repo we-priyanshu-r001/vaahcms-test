@@ -86,6 +86,10 @@ function getName(data){
                         :label="`+${prop.data.tags.length - 1}`"
                         class="p-chip-sm cursor-pointer bg-green-200"
                         v-tooltip="getName(prop.data.tags).join(', ')"/>
+
+                    <Chip v-else-if="prop.data.tags.length < 1"
+                        label="No Tags"
+                        class="p-chip-sm cursor-pointer bg-red-200"/>
                 </template>
 
             </Column>

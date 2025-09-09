@@ -5,6 +5,7 @@ import {useRoute} from 'vue-router';
 import { useBlogStore } from '../../stores/store-blogs'
 
 import VhViewRow from '../../vaahvue/vue-three/primeflex/VhViewRow.vue';
+import VhViewTags from '../../vaahvue/vue-three/primeflex/VhViewTags.vue';
 const store = useBlogStore();
 const route = useRoute();
 
@@ -122,7 +123,8 @@ const toggleItemMenu = (event) => {
                     <template v-for="(value, column) in store.item ">
 
                         <template v-if="column === 'created_by' || column === 'updated_by'
-                        || column === 'deleted_by'">
+                        || column === 'deleted_by' || column === 'bl_category_id' || column === 'vh_taxonomy_status_id' 
+                        || column === 'bl_tag_id' || column === 'seo'">
                         </template>
 
                         <template v-else-if="column === 'id' || column === 'uuid'">
@@ -145,6 +147,26 @@ const toggleItemMenu = (event) => {
                                        :value="value"
                                        type="yes-no"
                             />
+                        </template>
+
+                        <template v-else-if="column === 'tags'">
+                            <VhViewTags :label="column"
+                                       :value="value"
+                                       type="array"
+                                       />
+
+                        </template>
+
+                        <template v-else-if="column === 'category'">
+                            <VhViewRow :label="column"
+                                       :value="value?.name"
+                                       />
+                        </template>
+
+                        <template v-else-if="column === 'status'">
+                            <VhViewRow :label="column"
+                                       :value="value?.name"
+                                       />
                         </template>
 
                         <template v-else>
