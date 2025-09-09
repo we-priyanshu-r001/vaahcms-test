@@ -501,6 +501,7 @@ class Blog extends VaahModel
         foreach ($blogs as $blog) {
             $blog->tags()->detach();
         }
+        DB::table('bl_seos')->where('seoable_type', Blog::class)->whereIn('seoable_id', $items_id)->delete();
         self::whereIn('id', $items_id)->forceDelete();
 
         $response['success'] = true;
@@ -542,6 +543,7 @@ class Blog extends VaahModel
             case 'delete-all':
                 $list->forceDelete();
                 DB::table('bl_blog_tag')->truncate(); //Dangerous but efficient to detach in delete all scenario
+                DB::table('bl_seos')->where('seoable_type', Blog::class)->delete();
                 break;
             case 'create-100-records':
             case 'create-1000-records':
@@ -660,6 +662,12 @@ class Blog extends VaahModel
             return $response;
         }
         $item->tags()->detach();
+
+        DB::table('bl_seos')
+        ->where('seoable_type', Blog::class)
+        ->where('seoable_id', $item->id)
+        ->delete();
+
         $item->forceDelete();
 
         $response['success'] = true;
@@ -750,9 +758,13 @@ class Blog extends VaahModel
             $item =  new self();
             $item->fill($inputs);
             $item->save();
-
+            $item->seo()->create([
+                'seo_title' => $inputs['seo_title'],
+                'seo_description' => $inputs['seo_description'],
+                'seo_metatag' => $inputs['seo_metatag'],
+            ]);
+            $item->tags()->attach($inputs['bl_tag_id']); // Attach Tags
             $i++;
-
         }
 
     }

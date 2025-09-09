@@ -10,7 +10,7 @@ use WebReinvent\VaahCms\Traits\CrudWithUuidObservantTrait;
 use WebReinvent\VaahCms\Models\User;
 use WebReinvent\VaahCms\Libraries\VaahSeeder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-
+use Illuminate\Support\Facades\DB;
 
 class Category extends VaahModel
 {
@@ -422,6 +422,7 @@ class Category extends VaahModel
         }
 
         $items_id = collect($inputs['items'])->pluck('id')->toArray();
+        DB::table('bl_seos')->where('seoable_type', Category::class)->whereIn('seoable_id', $items_id)->delete();
         self::whereIn('id', $items_id)->forceDelete();
 
         $response['success'] = true;
@@ -462,6 +463,7 @@ class Category extends VaahModel
                 break;
             case 'delete-all':
                 $list->forceDelete();
+                DB::table('bl_seos')->where('seoable_type', Category::class)->delete();
                 break;
             case 'create-100-records':
             case 'create-1000-records':
@@ -577,6 +579,11 @@ class Category extends VaahModel
         }
         $item->forceDelete();
 
+        DB::table('bl_seos')
+            ->where('seoable_type', Category::class)
+            ->where('seoable_id', $item->id)
+            ->delete();
+
         $response['success'] = true;
         $response['data'] = [];
         $response['messages'][] = trans("vaahcms-general.record_has_been_deleted");
@@ -662,6 +669,12 @@ class Category extends VaahModel
             $item->fill($inputs);
             $item->save();
 
+            $item->seo()->create([
+                'seo_title' => $inputs['seo_title'],
+                'seo_description' => $inputs['seo_description'],
+                'seo_metatag' => $inputs['seo_metatag'],
+            ]);
+
             $i++;
 
         }
@@ -691,7 +704,7 @@ class Category extends VaahModel
 
         $inputs['name'] = $faker->sentence(3);
         $inputs['slug'] = Str::slug($inputs['name']);
-        $inputs['description'] = $faker->paragraph(3);
+        $inputs['description'] = $faker->paragraph(1);
         $inputs['is_active'] = 1;
 
         // SEO Fields
